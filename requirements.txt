@@ -1,8 +1,13 @@
+pyutilities>=0.13.1
+urllib3==1.26.2
+beautifulsoup4==4.9.3
+
+# -- all installed dependencies - to be reviewed and reduced
 appdirs==1.4.4
 asgiref==3.3.1
 asyncssh==2.5.0
 bcrypt==3.1.7
-beautifulsoup4==4.9.3
+
 bleach==3.1.0
 certifi==2019.9.11
 cffi==1.13.2
@@ -46,7 +51,7 @@ soupsieve==1.9.5
 sqlparse==0.4.1
 tqdm==4.37.0
 twine==3.3.0
-urllib3==1.26.2
+
 virtualenv==20.2.2
 wcwidth==0.2.5
 webencodings==0.5.1
