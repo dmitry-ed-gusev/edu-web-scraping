@@ -1,0 +1,57 @@
+version: 1
+# allows to get logger on modules level
+disable_existing_loggers: False
+formatters:
+    simple:
+        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    detailed:
+        # todo: add pattern for detailed format
+        format: "zzz"
+
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: simple
+        stream: ext://sys.stdout
+
+    std_file_handler:
+        class: logging.handlers.RotatingFileHandler
+        #level: INFO
+        level: DEBUG
+        formatter: simple
+        filename: log_info.log
+        maxBytes: 10485760 # 10MB
+        backupCount: 20
+        #encoding: utf8
+
+    error_file_handler:
+        class: logging.handlers.RotatingFileHandler
+        level: ERROR
+        formatter: simple
+        filename: log_errors.log
+        maxBytes: 10485760 # 10MB
+        backupCount: 20
+        #encoding: utf8
+
+# all available loggers
+loggers:
+    pylib:
+        level:  DEBUG
+        #handlers: [console]
+        #propagate: yes
+    # logger for the whole package
+    #geopython:
+    #    level:  DEBUG
+    geodb:
+        level:  DEBUG
+    geocik:
+        level:  DEBUG
+    #geoprocessor:
+    #        level:  DEBUG
+
+# root logger
+root:
+    level: INFO
+    #handlers: [console, info_file_handler, std_file_handler]
+    handlers: [console, std_file_handler, error_file_handler]

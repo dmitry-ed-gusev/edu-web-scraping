@@ -1,0 +1,73 @@
+{
+	"info": {
+		"_postman_id": "3652e3d2-a9b8-4d6b-9103-ba84ea2ea3bb",
+		"name": "RMRS Registr Book",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Reg Book - initial page",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://lk.rs-class.org/regbook/regbookVessel?ln=ru",
+					"protocol": "https",
+					"host": [
+						"lk",
+						"rs-class",
+						"org"
+					],
+					"path": [
+						"regbook",
+						"regbookVessel"
+					],
+					"query": [
+						{
+							"key": "ln",
+							"value": "ru"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reg Book - search by name",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "namer",
+							"value": "АА",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://lk.rs-class.org/regbook/regbookVessel?ln=ru",
+					"protocol": "https",
+					"host": [
+						"lk",
+						"rs-class",
+						"org"
+					],
+					"path": [
+						"regbook",
+						"regbookVessel"
+					],
+					"query": [
+						{
+							"key": "ln",
+							"value": "ru"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
