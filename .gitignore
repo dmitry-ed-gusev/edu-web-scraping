@@ -1,14 +1,14 @@
-# Intellij IDEA files
+## -- Intellij IDEA files -- ##
 .idea/
 *.iml
+
+## MySql DBMS data folder (dockerised) ##
+mysql_data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# C extensions
-*.so
 
 # Distribution / packaging
 .Python

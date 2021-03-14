@@ -1,1 +1,1 @@
-SQLite DB for the scraping module.
+Folder for DBMS files: SQLite DB / MySql.

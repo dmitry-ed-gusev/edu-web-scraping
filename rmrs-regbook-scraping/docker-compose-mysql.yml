@@ -1,0 +1,46 @@
+###################################################################################################
+#
+#     Docker Composer file for mysql DBMS server.
+#
+#     Created:  Dmitrii Gusev, 14.03.2021
+#     Modified:
+#
+###################################################################################################
+
+version: '3.5'
+
+services: # docker services to run
+
+  mysql: # mysql DBMS
+    container_name: mysql_dbms
+    image: mysql:8.0.23
+    volumes:
+      - ./db/mysql_data:/var/lib/mysql # data volume outside of the docker container
+    restart: unless-stopped
+    networks:
+      - web_scraping_network
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456 # root user password
+      # (USER/PASS are optional), used in conjunction to create a new user and to set that user's password.
+      # This user will be granted superuser permissions for DB specified by the MYSQL_DATABASE variable
+      MYSQL_DATABASE: fleet
+      MYSQL_USER: fleet
+      MYSQL_PASSWORD: fleet
+    ports:
+      - 3305:3306
+
+  adminer: # DBMS admin (lightweight phpMyAdmin)
+    container_name: mysql_adminer
+    image: adminer
+    restart: unless-stopped
+    networks:
+      - web_scraping_network
+    ports:
+      - 8080:8080
+    depends_on: # this service depends on mysql service
+      - mysql
+
+networks: # networks configuration
+  web_scraping_network:
+    driver: bridge
+    name: scrap-net
