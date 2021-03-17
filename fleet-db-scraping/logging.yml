@@ -4,9 +4,6 @@ disable_existing_loggers: False
 formatters:
     simple:
         format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    #detailed:
-        # todo: add pattern for detailed format
-        #format: "zzz"
 
 handlers:
     console:
@@ -23,7 +20,7 @@ handlers:
         filename: logs/log_info.log
         maxBytes: 10485760 # 10MB
         backupCount: 20
-        #encoding: utf8
+        encoding: utf8
 
     error_file_handler:
         class: logging.handlers.RotatingFileHandler
@@ -32,7 +29,7 @@ handlers:
         filename: logs/log_errors.log
         maxBytes: 10485760 # 10MB
         backupCount: 20
-        #encoding: utf8
+        encoding: utf8
 
 # all available loggers
 loggers:
@@ -42,9 +39,10 @@ loggers:
         #propagate: yes
     scrap_book:
         level:  DEBUG
+    sqlitedb:
+        level: DEBUG
 
 # root logger
 root:
     level: INFO
-    #handlers: [console, info_file_handler, std_file_handler]
     handlers: [console, std_file_handler, error_file_handler]
