@@ -5,7 +5,7 @@
     Scraper for RMRS Register Book :)
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified: Gusev Dmitrii, 12.01.2021
+    Modified: Gusev Dmitrii, 20.03.2021
 """
 
 
@@ -20,6 +20,7 @@ from pyutilities.pylog import setup_logging
 RUS_CHARS = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 ENG_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 NUM_CHARS = "0123456789"
+SPEC_SYMBOLS = "-"
 
 # scraper configuration
 MAIN_URL = "https://lk.rs-class.org/regbook/regbookVessel?ln=ru"
@@ -29,8 +30,42 @@ ERROR_OVER_1000_RECORDS = "Результат запроса более 1000 з�
 OUTPUT_FILE = "regbook.xls"
 
 # setup logging for the whole script
-setup_logging(default_path='logging.yml')
+setup_logging(default_path='../logging.yml')
 log = logging.getLogger('scrap_book')
+
+
+# todo: implement save / load variations to / from file (cache)
+def build_variations_list():
+    """Build list of all possible variations of symbols for further search.
+    :return: list of variations
+    """
+    variations = list()
+    # - process russian characters
+    for letter1 in RUS_CHARS + ENG_CHARS + NUM_CHARS:
+        for letter2 in RUS_CHARS + ENG_CHARS + NUM_CHARS:
+            variations.append(letter1 + letter2)
+            for spec_symbol in SPEC_SYMBOLS:
+                variations.append(letter1 + spec_symbol + letter2)
+
+    # # - process english characters
+    # for letter1 in ENG_CHARS:
+    #     for letter2 in ENG_CHARS:
+    #         variations.append(letter1 + letter2)
+    #
+    # # - process mix russian / english
+    # for letter1 in RUS_CHARS:
+    #     for letter2 in ENG_CHARS:
+    #         variations.append(letter1 + letter2)
+    #
+    # # - process mix russian / english + numbers
+    # for letter1 in RUS_CHARS + ENG_CHARS:
+    #     for letter2 in NUM_CHARS:
+    #         variations.append(letter1 + letter2)
+
+    # - sort list before return
+    variations.sort()
+
+    return variations
 
 
 def perform_request(request_param):
@@ -47,7 +82,7 @@ def perform_request(request_param):
 
 def parse_data(html):
     """Parse HTML with search results.
-    :return: list of ships parsed from HTML response
+    :return: dictionary () with ships parsed from HTML response
     """
 
     if not html:  # empty html response provided - return empty dictionary
@@ -92,26 +127,30 @@ def parse_data(html):
     return ships_dict
 
 
-def process_chars(characters):
-    """Process characters paired from the provided string.
-    :param characters:
-    :return:
+def perform_ships_search(symbols_variations):
+    """Process list of strings for the search.
+    :param symbols_variations: symbols variations for search
+    :return: ships dictionary for the given list of symbols variations
     """
     local_ships = {}
-    for letter1 in characters:
-        log.debug("Currently processing: " + letter1)
-        for letter2 in characters:
-            html = perform_request(letter1 + letter2)  # request site and get HTML
-            ships = parse_data(html)  # parse data and get ships dictionary
-            local_ships.update(ships)  # update main dictionary with found data
-            log.debug("Found ship(s): {}, total: {}, search string: {}"
-                      .format(len(ships), len(local_ships), letter1 + letter2))
+    counter = 1
+    variations_length = len(variations)
+    for search_string in symbols_variations:
+        log.debug("Currently processing: {} ({} out of {})".format(search_string, counter, variations_length))
+        html = perform_request(search_string)  # request site and get HTML
+        ships = parse_data(html)               # parse received data and get ships dictionary
+        local_ships.update(ships)              # update main dictionary with found data
+        log.debug("Found ship(s): {}, total: {}, search string: {}"
+                  .format(len(ships), len(local_ships), search_string))
+        counter += 1  # increment counter
+
     return local_ships
 
 
 def save_ships(xls_file, ships_map):
     """Save search results into xls file
     :param xls_file:
+    :param ships_map:
     :return:
     """
     if not ships_map:
@@ -154,21 +193,27 @@ main_ships = {}
 log.info('Starting [scrap_book] module...')
 log.debug('Ready to parse the site :)')
 
-# process russian characters
-main_ships.update(process_chars(RUS_CHARS))
-log.debug("Processed russian characters.")
-log.info("Found ship(s): {}".format(len(main_ships)))
+# build list of variations for search strings
+variations = build_variations_list()
+log.debug("Built list of variations: {}".format(variations))
+log.debug("# of built variations: {}".format(len(variations)))
 
-# process english characters
-main_ships.update(process_chars(ENG_CHARS))
-log.debug("Processed english characters.")
-log.info("Found ship(s): {}".format(len(main_ships)))
+# process search variations strings
+main_ships.update(perform_ships_search(variations))
+log.debug("Processed all characters.")
+log.info("Found total ship(s): {}".format(len(main_ships)))
 
-# process numbers
-main_ships.update(process_chars(NUM_CHARS))
-log.debug("Processed numbers.")
-log.info("Found ship(s): {}".format(len(main_ships)))
-
-# save to excel file
-save_ships(OUTPUT_FILE, main_ships)
-log.info("Saved ships to file {}".format(OUTPUT_FILE))
+#
+# # process english characters
+# main_ships.update(process_chars(ENG_CHARS))
+# log.debug("Processed english characters.")
+# log.info("Found ship(s): {}".format(len(main_ships)))
+#
+# # process numbers
+# main_ships.update(process_chars(NUM_CHARS))
+# log.debug("Processed numbers.")
+# log.info("Found ship(s): {}".format(len(main_ships)))
+#
+# # save to excel file
+# save_ships(OUTPUT_FILE, main_ships)
+# log.info("Saved ships to file {}".format(OUTPUT_FILE))
