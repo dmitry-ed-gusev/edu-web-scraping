@@ -12,15 +12,11 @@
 import logging
 import ssl
 import xlwt
+import hashlib
 from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
 
-# characters for search engine
-RUS_CHARS = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
-ENG_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-NUM_CHARS = "0123456789"
-SPEC_SYMBOLS = "-"
 
 # scraper configuration
 MAIN_URL = "https://lk.rs-class.org/regbook/regbookVessel?ln=ru"
@@ -35,37 +31,38 @@ log = logging.getLogger('scrap_book')
 
 
 # todo: implement save / load variations to / from file (cache)
-def build_variations_list():
+# todo: implement adding additional spec symbols
+def build_variations_list(buckets=0):
     """Build list of all possible variations of symbols for further search.
+    :param buckets: number of buckets to divide symbols
     :return: list of variations
     """
-    variations = list()
-    # - process russian characters
-    for letter1 in RUS_CHARS + ENG_CHARS + NUM_CHARS:
-        for letter2 in RUS_CHARS + ENG_CHARS + NUM_CHARS:
-            variations.append(letter1 + letter2)
-            for spec_symbol in SPEC_SYMBOLS:
-                variations.append(letter1 + spec_symbol + letter2)
 
-    # # - process english characters
-    # for letter1 in ENG_CHARS:
-    #     for letter2 in ENG_CHARS:
-    #         variations.append(letter1 + letter2)
-    #
-    # # - process mix russian / english
-    # for letter1 in RUS_CHARS:
-    #     for letter2 in ENG_CHARS:
-    #         variations.append(letter1 + letter2)
-    #
-    # # - process mix russian / english + numbers
-    # for letter1 in RUS_CHARS + ENG_CHARS:
-    #     for letter2 in NUM_CHARS:
-    #         variations.append(letter1 + letter2)
+    # characters for search engine
+    rus_chars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
+    eng_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    num_chars = "0123456789"
+    spec_symbols = "-"
 
-    # - sort list before return
-    variations.sort()
+    result = dict()  # resulting dictionary
 
-    return variations
+    # - process all characters
+    if buckets <= 0:  # no buckets required for variations list
+        single_list = list()
+        result[0] = single_list  # resulting dictionary with just one list (all variations)
+
+        for letter1 in rus_chars + eng_chars + num_chars:
+            for letter2 in rus_chars + eng_chars + num_chars:
+                single_list.append(letter1 + letter2)
+                for spec_symbol in spec_symbols:
+                    single_list.append(letter1 + spec_symbol + letter2)
+
+        single_list.sort()  # sort resulting single list
+
+    else:  # some buckets required - usually for multiple threads
+        pass
+
+    return result
 
 
 def perform_request(request_param):
@@ -190,27 +187,39 @@ def save_ships(xls_file, ships_map):
 # main part of the script
 main_ships = {}
 
-log.info('Starting [scrap_book] module...')
-log.debug('Ready to parse the site :)')
+hash_object1 = hashlib.md5(b'Hello World').hexdigest()
+hash_object2 = hashlib.md5('Hello World'.encode('utf-8')).hexdigest()
+print("---> 1-1 ", hash_object1)
+print("---> 1-2 ", int(hash_object1, 16))
+print("---> 1-3 ", int(hash_object1, 16) % 5)
 
-# build list of variations for search strings
-variations = build_variations_list()
-log.debug("Built list of variations: {}".format(variations))
-log.debug("# of built variations: {}".format(len(variations)))
+print("---> 2 ", hash_object2)
 
-# process search variations strings
-main_ships.update(perform_ships_search(variations))
-log.debug("Processed all characters.")
-log.info("Found total ship(s): {}".format(len(main_ships)))
+
+# log.info('Starting [scrap_book] module...')
+# log.debug('Ready to parse the site :)')
+#
+# # build list of variations for search strings
+# variations = build_variations_list()
+# log.debug("Built list of variations: {}".format(variations))
+# log.debug("# of built variations: {}".format(len(variations)))
+#
+# # process search variations strings
+# main_ships.update(perform_ships_search(variations))
+# log.debug("Processed all characters.")
+# log.info("Found total ship(s): {}".format(len(main_ships)))
+
+
+
 
 #
 # # process english characters
-# main_ships.update(process_chars(ENG_CHARS))
+# main_ships.update(process_chars(eng_chars))
 # log.debug("Processed english characters.")
 # log.info("Found ship(s): {}".format(len(main_ships)))
 #
 # # process numbers
-# main_ships.update(process_chars(NUM_CHARS))
+# main_ships.update(process_chars(num_chars))
 # log.debug("Processed numbers.")
 # log.info("Found ship(s): {}".format(len(main_ships)))
 #

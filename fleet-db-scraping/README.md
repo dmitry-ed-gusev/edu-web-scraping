@@ -14,5 +14,12 @@ https://pythontic.com/serialization/json/introduction
 https://yzhong-cs.medium.com/serialize-and-deserialize-complex-json-in-python-205ecc636caa
 https://pynative.com/make-python-class-json-serializable/
 
+Testing:
+https://realpython.com/pytest-python-testing/
+https://realpython.com/python-testing/
+
+Hashing:
+https://www.pythoncentral.io/hashing-strings-with-python/
+
 ## Tech Details
 TBD
