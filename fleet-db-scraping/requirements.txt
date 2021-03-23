@@ -1,0 +1,25 @@
+# -- my own helper library
+pyutilities>=0.13.1
+
+# -- network interaction
+urllib3>=1.26.4
+requests==2.25.1
+beautifulsoup4==4.9.3
+PyYAML>=5.4.1
+
+# -- farmeworks / ORM / DBMS
+Django==3.1.7
+pysqlite3==0.4.5
+
+# -- nice text tables (reporting)
+prettytable==2.1.0
+
+# -- test dependencies / virtual environment
+mock==4.0.3
+nose2==0.10.0
+virtualenv>=20.4.3
+
+# -- work with word/excel files (old + new formats)
+xlrd==2.0.1
+xlwt==1.3.0
+twine==3.4.1

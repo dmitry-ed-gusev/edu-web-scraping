@@ -9,7 +9,7 @@
 """
 
 import unittest
-from scraper.engine.scraper_rsclassorg import build_variations_list
+from engine.scraper_rsclassorg import build_variations_list
 
 
 class TestScraperRsClassOrg(unittest.TestCase):
