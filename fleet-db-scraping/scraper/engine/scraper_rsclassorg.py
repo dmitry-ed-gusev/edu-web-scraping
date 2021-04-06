@@ -5,7 +5,7 @@
     Scraper for RMRS Register Book :)
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified: Gusev Dmitrii, 20.03.2021
+    Modified: Gusev Dmitrii, 06.04.2021
 """
 
 
@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
 
 
-# scraper configuration
+# scraper configuration - useful constants
 MAIN_URL = "https://lk.rs-class.org/regbook/regbookVessel?ln=ru"
 FORM_PARAM = "namer"
 ENCODING = "utf-8"
@@ -26,8 +26,58 @@ ERROR_OVER_1000_RECORDS = "Результат запроса более 1000 з�
 OUTPUT_FILE = "regbook.xls"
 
 # setup logging for the whole script
-setup_logging(default_path='../logging.yml')
-log = logging.getLogger('scrap_book')
+
+setup_logging(default_path='logging.yml')
+log = logging.getLogger('scraper_rsclassorg')
+
+
+# todo: extract hashmap and search variations generation into separated class/script???
+
+def get_hash_bucket_number(value, buckets):
+    """Generate hash bucket number for the given value and buckets count.
+    :param value:
+    :param buckets:
+    :return:
+    """
+    log.debug('get_hash_bucket_number(): value [{}], buckets [{}].'.format(value, buckets))
+
+    if value is None or len(value.strip()) == 0:  # fail-fast if value is empty
+        raise ValueError('Provided empty value!')
+
+    if buckets <= 0:  # if buckets number <= 0 - bucket number is always 0
+        log.debug('get_hash_bucket_number(): buckets number [{}] is <= 0, return 0!'.format(buckets))
+        return 0
+
+    # value is OK and buckets number is > 0
+    hex_hash = hashlib.md5(value.encode('utf-8')).hexdigest()  # generate hexadecimal hash
+    int_hash = int(hex_hash, 16)                               # convert it to int (decimal)
+    bucket_number = int_hash % buckets                         # define bucket number as division remainder
+    log.debug('get_hash_bucket_number(): hash: [{}], decimal hash: [{}], generated bucket: [{}].'
+              .format(hex_hash, int_hash, bucket_number))
+
+    return bucket_number
+
+
+def add_value_to_hashmap(hashmap, value, buckets):
+    """Add value to the provided hash map with buckets number.
+    :param hashmap:
+    :param value:
+    :param buckets:
+    """
+    log.debug('add_value_to_hashmap(): hashmap [{}], value [{}], buckets [{}].'
+              .format(hashmap, value, buckets))
+
+    if hashmap is None or not isinstance(hashmap, dict):  # fail-fast - hash map type check
+        raise ValueError('Provided empty hashmap [{}] or it isn\'t dictionary!'.format(hashmap))
+    if value is None or len(value.strip()) == 0:  # fail-fast - empty value
+        raise ValueError('Provided empty value [{}]!'.format(value))
+
+    bucket_number = get_hash_bucket_number(value, buckets)  # bucket number for the value
+    if hashmap.get(bucket_number) is None:  # bucket is not initialized yet
+        hashmap[bucket_number] = list()
+    hashmap.get(bucket_number).append(value)  # add value to the bucket
+
+    return hashmap
 
 
 # todo: implement save / load variations to / from file (cache)
@@ -37,6 +87,7 @@ def build_variations_list(buckets=0):
     :param buckets: number of buckets to divide symbols
     :return: list of variations
     """
+    log.debug('build_variations_list(): buckets [{}].'.format(buckets))
 
     # characters for search engine
     rus_chars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
@@ -46,21 +97,51 @@ def build_variations_list(buckets=0):
 
     result = dict()  # resulting dictionary
 
-    # - process all characters
-    if buckets <= 0:  # no buckets required for variations list
-        single_list = list()
-        result[0] = single_list  # resulting dictionary with just one list (all variations)
+    for letter1 in rus_chars + eng_chars + num_chars:
+        for letter2 in rus_chars + eng_chars + num_chars:
 
-        for letter1 in rus_chars + eng_chars + num_chars:
-            for letter2 in rus_chars + eng_chars + num_chars:
-                single_list.append(letter1 + letter2)
-                for spec_symbol in spec_symbols:
-                    single_list.append(letter1 + spec_symbol + letter2)
+            #value = letter1 + letter2                     # generated value (without spec symbols)
+            result = add_value_to_hashmap(result, letter1 + letter2, buckets)  # add value to hashmap bucket
 
-        single_list.sort()  # sort resulting single list
+            # bucket_number = get_hash_bucket_number(value, buckets)  # bucket number for the value
+            # if result.get(bucket_number) is None:  # bucket is not initialized yet
+            #     result[bucket_number] = list()
+            # result.get(bucket_number).append(value)                 # add value to the bucket
 
-    else:  # some buckets required - usually for multiple threads
-        pass
+            for spec_symbol in spec_symbols:
+                #value = letter1 + spec_symbol + letter2       # generated value (with spec symbols)
+                result = add_value_to_hashmap(result, letter1 + spec_symbol + letter2, buckets)  # add value to hashmap bucket
+
+                #single_list.append(letter1 + spec_symbol + letter2)
+
+
+    # # - process all characters
+    # if buckets <= 0:  # no buckets required for variations list
+    #     single_list = list()
+    #     result[0] = single_list  # resulting dictionary with just one list (all variations)
+    #
+    #     for letter1 in rus_chars + eng_chars + num_chars:
+    #         for letter2 in rus_chars + eng_chars + num_chars:
+    #             single_list.append(letter1 + letter2)
+    #             for spec_symbol in spec_symbols:
+    #                 single_list.append(letter1 + spec_symbol + letter2)
+    #
+    #     single_list.sort()  # sort resulting single list
+    #
+    # else:  # some buckets required - usually for multiple threads
+    #
+    #     result.get()
+    #     for letter1 in rus_chars + eng_chars + num_chars:
+    #         for letter2 in rus_chars + eng_chars + num_chars:
+    #             single_list.append(letter1 + letter2)
+    #             for spec_symbol in spec_symbols:
+    #                 single_list.append(letter1 + spec_symbol + letter2)
+    #
+    #         hash_object1 = hashlib.md5(b'Hello World').hexdigest()
+    #         hash_object2 = hashlib.md5('Hello World'.encode('utf-8')).hexdigest()
+    #         print("---> 1-1 ", hash_object1)
+    #         print("---> 1-2 ", int(hash_object1, 16))
+    #         print("---> 1-3 ", int(hash_object1, 16) % 5)
 
     return result
 
@@ -185,6 +266,9 @@ def save_ships(xls_file, ships_map):
 
 
 # main part of the script
+if __name__ == '__main__':
+    print('Don\'t run this script directly!')
+
 main_ships = {}
 
 hash_object1 = hashlib.md5(b'Hello World').hexdigest()
@@ -194,6 +278,10 @@ print("---> 1-2 ", int(hash_object1, 16))
 print("---> 1-3 ", int(hash_object1, 16) % 5)
 
 print("---> 2 ", hash_object2)
+
+print('Current script name: {}'.format(__name__))
+
+#build_variations_list(9)
 
 
 # log.info('Starting [scrap_book] module...')

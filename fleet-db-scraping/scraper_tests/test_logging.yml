@@ -1,0 +1,28 @@
+version: 1
+# allows to get logger on modules level
+disable_existing_loggers: False
+
+# -- log messages formatters
+formatters:
+    simple:
+        format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# -- logging handlers / appenders
+handlers:
+    console:
+        class: logging.StreamHandler
+        level: DEBUG
+        formatter: simple
+        stream: ext://sys.stdout
+
+# -- all available loggers + levels
+loggers:
+    scraper_rsclassorg:
+        level:  DEBUG
+    scraper_rsclassorg_test:
+        level: DEBUG
+
+# -- root logger config + appenders
+root:
+    level: INFO
+    handlers: [console]
