@@ -37,7 +37,7 @@ loggers:
         level:  DEBUG
         #handlers: [console]
         #propagate: yes
-    sscraper_rsclassorg:
+    scraper_rsclassorg:
         level:  DEBUG
     sqlitedb:
         level: DEBUG

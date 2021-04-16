@@ -8,8 +8,8 @@ beautifulsoup4==4.9.3
 PyYAML>=5.4.1
 
 # -- farmeworks / ORM / DBMS
-Django==3.1.7
-pysqlite3==0.4.5
+Django>=3.2
+pysqlite3>=0.4.6
 
 # -- nice text tables (reporting)
 prettytable==2.1.0
