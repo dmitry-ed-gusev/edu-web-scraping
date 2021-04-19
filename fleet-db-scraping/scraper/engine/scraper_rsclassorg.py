@@ -13,6 +13,10 @@ import logging
 import ssl
 import xlwt
 import hashlib
+import concurrent.futures
+import requests
+import threading
+import time
 from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
@@ -24,11 +28,15 @@ FORM_PARAM = "namer"
 ENCODING = "utf-8"
 ERROR_OVER_1000_RECORDS = "Результат запроса более 1000 записей! Уточните параметры запроса"
 OUTPUT_FILE = "regbook.xls"
+WORKERS_COUNT = 20
 
 # setup logging for the whole script
-
 setup_logging(default_path='logging.yml')
 log = logging.getLogger('scraper_rsclassorg')
+
+# setup for multithreading processing
+thread_local = threading.local()  # thread local storage
+futures = []  # list to store future results of threads
 
 
 # todo: extract hashmap and search variations generation into separated class/script???
@@ -108,6 +116,13 @@ def build_variations(buckets=0):
     return result
 
 
+def get_session():
+    """Return local thread attribute - http session."""
+    if not hasattr(thread_local, "session"):
+        thread_local.session = requests.Session()
+    return thread_local.session
+
+
 def perform_request(request_param):
     """Perform one HTTP POST request with one form parameter for search.
     :return: HTML output with found data
@@ -172,6 +187,13 @@ def parse_data(html):
     return ships_dict
 
 
+def perform_one_request(search_string):
+    """Perform one request to RSCLASS.ORG and parse the output."""
+    ships = parse_data(perform_request(search_string))
+    log.info("Found ship(s): {}, search string: {}".format(len(ships), search_string))
+    return ships
+
+
 def perform_ships_search_single_thread(symbols_variations):
     """Process list of strings for the search in single thread.
     :param symbols_variations: symbols variations for search
@@ -189,14 +211,42 @@ def perform_ships_search_single_thread(symbols_variations):
 
     for search_string in symbols_variations[0]:
         log.debug("Currently processing: {} ({} out of {})".format(search_string, counter, variations_length))
-        html = perform_request(search_string)  # request site and get HTML
-        ships = parse_data(html)               # parse received data and get ships dictionary
-        local_ships.update(ships)              # update main dictionary with found data
+        # html = perform_request(search_string)  # request site and get HTML
+        ships = perform_one_request(search_string)  # request and get HTML + parse received data + get ships dict
+        local_ships.update(ships)                   # update main dictionary with found data
 
         log.info("Found ship(s): {}, total: {}, search string: {}".format(len(ships), len(local_ships), search_string))
         counter += 1  # increment counter
 
     return local_ships
+
+
+def perform_ships_search_multiple_threads(symbols_variations):
+    """Process list of strings for the search in multiple threads.
+    :param symbols_variations: symbols variations for search
+    :return: ships dictionary for the given list of symbols variations
+    """
+    log.debug("perform_ships_search_multiple_threads(): perform multi-threaded search.")
+
+    if symbols_variations is None or not isinstance(symbols_variations, dict):
+        raise ValueError('Provided empty dictionary [{}] or it isn\'t dictionary!'.format(symbols_variations))
+
+    local_ships = {}
+
+    # run processing in multiple threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS_COUNT) as executor:
+        for symbol in symbols_variations[0]:
+            future = executor.submit(perform_one_request, symbol)
+            futures.append(future)
+
+        # directly loop over futures to wait for them in the order they were submitted
+        for future in futures:
+            result = future.result()
+            local_ships.update(result)
+
+        log.info(f"Found total ships: {len(local_ships)}.")
+
+        return local_ships
 
 
 def save_ships(xls_file, ships_map):
@@ -254,8 +304,8 @@ log.debug("Built list of variations: {}".format(variations))
 log.debug("# of built variations: {}".format(len(variations)))
 
 # process search variations strings
-main_ships.update(perform_ships_search_single_thread(variations))
-log.debug("Processed all characters.")
+# main_ships.update(perform_ships_search_single_thread(variations))
+main_ships.update(perform_ships_search_multiple_threads(variations))
 log.info("Found total ship(s): {}".format(len(main_ships)))
 
 # save to excel file
