@@ -18,7 +18,6 @@ import time
 from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
-
 from scraper.utils.utilities import build_variations_list
 from scraper.entities.Ship import Ship
 
@@ -104,7 +103,7 @@ def parse_data(html):
                 ship_dict['main_name'] = cells[1].contents[0]    # get 0 element fro the cell content
                 ship_dict['secondary_name'] = cells[1].div.text  # get value of the tag <div> inside the cell
                 ship_dict['home_port'] = cells[2].text           # get tag content (text value)
-                ship_dict['callsign'] = cells[3].text            # get tag content (text value)
+                ship_dict['call_sign'] = cells[3].text           # get tag content (text value)
                 ship_dict['reg_number'] = cells[4].text          # get tag content (text value)
                 imo_number = cells[5].text                       # get tag content (text value)
                 ship_dict['imo_number'] = imo_number
@@ -196,7 +195,7 @@ def save_ships(xls_file, ships_map):
     row.write(1, 'main_name')
     row.write(2, 'secondary_name')
     row.write(3, 'home_port')
-    row.write(4, 'callsign')
+    row.write(4, 'call_sign')
     row.write(5, 'reg_number')
     row.write(6, 'imo_number')
 
@@ -209,7 +208,7 @@ def save_ships(xls_file, ships_map):
         row.write(1, ship['main_name'])
         row.write(2, ship['secondary_name'])
         row.write(3, ship['home_port'])
-        row.write(4, ship['callsign'])
+        row.write(4, ship['call_sign'])
         row.write(5, ship['reg_number'])
         row.write(6, ship['imo_number'])
         row_counter += 1

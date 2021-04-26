@@ -2,7 +2,7 @@
     Ship entity with base properties.
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified:
+    Modified: Dmitrii Gusev, 26.04.2021
 """
 
 
