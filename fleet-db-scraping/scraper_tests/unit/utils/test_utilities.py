@@ -5,12 +5,12 @@
     Test for RS Class Register Book scraper.
 
     Created:  Dmitrii Gusev, 21.03.2021
-    Modified: Dmitrii Gusev, 06.04.2021
+    Modified: Dmitrii Gusev, 26.04.2021
 """
 
 import unittest
 import logging
-from scraper.engine.scraper_rsclassorg import build_variations_list, \
+from scraper.utils.utilities import build_variations_hashmap, build_variations_list, \
     get_hash_bucket_number, add_value_to_hashmap
 from pyutilities.pylog import setup_logging
 
@@ -21,7 +21,7 @@ LOGGER_NAME = 'scraper_rsclassorg_test'
 class TestScraperRsClassOrg(unittest.TestCase):
 
     # static logger initializer
-    setup_logging(default_path='../test_logging.yml')
+    setup_logging(default_path='../../test_logging.yml')
     log = logging.getLogger(LOGGER_NAME)
 
     def setUp(self):
@@ -66,11 +66,15 @@ class TestScraperRsClassOrg(unittest.TestCase):
         self.assertEqual({0: ['aaa', 'bbb']}, add_value_to_hashmap({0: ['aaa']}, 'bbb', 0))
         self.assertEqual({0: ['aaa', 'bbb'], 4: ['ccc']}, add_value_to_hashmap({0: ['aaa', 'bbb']}, 'ccc', 5))
 
-    def test_build_variations_list_0_buckets(self):
-        self.assertEqual(1, len(build_variations_list().keys()))
+    def test_build_variations_hashmap_0_buckets(self):
+        self.assertEqual(1, len(build_variations_hashmap().keys()))
+
+    def test_build_variations_hashmap(self):
+        self.assertEqual(10, len(build_variations_hashmap(10).keys()))
 
     def test_build_variations_list(self):
-        self.assertEqual(10, len(build_variations_list(10).keys()))
+        self.assertTrue(isinstance(build_variations_list(), list))
+        self.assertEqual(9522, len(build_variations_list()))
 
 
 if __name__ == '__main__':

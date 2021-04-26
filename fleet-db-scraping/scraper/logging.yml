@@ -37,12 +37,14 @@ loggers:
         level:  DEBUG
         #handlers: [console]
         #propagate: yes
+    scraper_utilities:
+        level: DEBUG
     scraper_rsclassorg:
-        level:  DEBUG
+        level: DEBUG
     sqlitedb:
         level: DEBUG
 
 # root logger
 root:
     level: INFO
-    handlers: [console, std_file_handler, error_file_handler]
+    handlers: [console, std_file_handler, error_file_handler]  # will be inherited by other loggers

@@ -2,17 +2,15 @@
 # coding=utf-8
 
 """
-    Scraper for RMRS Register Book.
+    Scraper for RMRS (RS-CLASS.ORG) Register Book.
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified: Gusev Dmitrii, 16.04.2021
+    Modified: Gusev Dmitrii, 26.04.2021
 """
-
 
 import logging
 import ssl
 import xlwt
-import hashlib
 import concurrent.futures
 import requests
 import threading
@@ -21,6 +19,8 @@ from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
 
+from scraper.utils.utilities import build_variations_list
+from scraper.entities.Ship import Ship
 
 # scraper configuration - useful constants
 MAIN_URL = "https://lk.rs-class.org/regbook/regbookVessel?ln=ru"
@@ -39,83 +39,6 @@ thread_local = threading.local()  # thread local storage
 futures = []  # list to store future results of threads
 
 
-# todo: extract hashmap and search variations generation into separated class/script???
-
-def get_hash_bucket_number(value, buckets):
-    """Generate hash bucket number for the given value, generated bucket number
-    will be less than provided buckets count.
-    :param value:
-    :param buckets:
-    :return:
-    """
-    log.debug('get_hash_bucket_number(): value [{}], buckets [{}].'.format(value, buckets))
-
-    if value is None or len(value.strip()) == 0:  # fail-fast if value is empty
-        raise ValueError('Provided empty value!')
-
-    if buckets <= 0:  # if buckets number <= 0 - generated bucket number is always 0
-        log.debug('get_hash_bucket_number(): buckets number [{}] is <= 0, return 0!'.format(buckets))
-        return 0
-
-    # value is OK and buckets number is > 0
-    hex_hash = hashlib.md5(value.encode('utf-8')).hexdigest()  # generate hexadecimal hash
-    int_hash = int(hex_hash, 16)                               # convert it to int (decimal)
-    bucket_number = int_hash % buckets                         # define bucket number as division remainder
-    log.debug('get_hash_bucket_number(): hash: [{}], decimal hash: [{}], generated bucket: [{}].'
-              .format(hex_hash, int_hash, bucket_number))
-
-    return bucket_number
-
-
-def add_value_to_hashmap(hashmap, value, buckets):
-    """Add value to the provided hash map with provided total buckets number.
-    :param hashmap:
-    :param value:
-    :param buckets:
-    """
-    log.debug('add_value_to_hashmap(): hashmap [{}], value [{}], buckets [{}].'
-              .format(hashmap, value, buckets))
-
-    if hashmap is None or not isinstance(hashmap, dict):  # fail-fast - hash map type check
-        raise ValueError('Provided empty hashmap [{}] or it isn\'t dictionary!'.format(hashmap))
-    if value is None or len(value.strip()) == 0:  # fail-fast - empty value
-        raise ValueError('Provided empty value [{}]!'.format(value))
-
-    bucket_number = get_hash_bucket_number(value, buckets)  # bucket number for the value
-    if hashmap.get(bucket_number) is None:  # bucket is not initialized yet
-        hashmap[bucket_number] = list()
-    hashmap.get(bucket_number).append(value)  # add value to the bucket
-
-    return hashmap
-
-
-# todo: implement save / load variations to / from file (cache)
-# todo: implement adding additional spec symbols
-def build_variations(buckets=0):
-    """Build list of all possible variations of symbols for further search.
-    :param buckets: number of buckets to divide symbols
-    :return: list of variations
-    """
-    log.debug('build_variations_list(): buckets [{}].'.format(buckets))
-
-    # characters for search engine
-    rus_chars = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
-    eng_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    num_chars = "0123456789"
-    spec_symbols = "-"
-
-    result = dict()  # resulting dictionary
-
-    for letter1 in rus_chars + eng_chars + num_chars:
-        for letter2 in rus_chars + eng_chars + num_chars:
-            result = add_value_to_hashmap(result, letter1 + letter2, buckets)  # add value to hashmap bucket
-
-            for spec_symbol in spec_symbols:
-                result = add_value_to_hashmap(result, letter1 + spec_symbol + letter2, buckets)  # add value to hashmap bucket
-
-    return result
-
-
 def get_session():
     """Return local thread attribute - http session."""
     if not hasattr(thread_local, "session"):
@@ -127,7 +50,7 @@ def perform_request(request_param):
     """Perform one HTTP POST request with one form parameter for search.
     :return: HTML output with found data
     """
-    log.debug('perform_request(): request param [{}].'.format(request_param))
+    # log.debug('perform_request(): request param [{}].'.format(request_param))  # <- too much output
 
     if request_param is None or len(request_param.strip()) == 0:  # fail-fast - empty value
         raise ValueError('Provided empty value [{}]!'.format(request_param))
@@ -146,33 +69,37 @@ def parse_data(html):
     IMO number as a key.
     :return: dictionary with ships parsed from HTML response
     """
-    log.debug('parse_data(): processing.')
+    # log.debug('parse_data(): processing.')  # <- too much output
 
     if not html:  # empty html response provided - return empty dictionary
-        log.error("Returned empty HTML response!")
+        log.error("Got empty HTML response - returns empty dictionary!")
         return {}
 
     if html and ERROR_OVER_1000_RECORDS in html:
-        log.error("Found over 1000 records!")
+        log.error("Found over 1000 records - returns empty dictionary!")
         return {}
 
     soup = BeautifulSoup(html, "html.parser")
     table_body = soup.find("tbody", {"id": "myTable0"})  # find <tbody> tag - table body
 
-    ships_dict = {}
+    ships_dict = {}  # resulting dictionary with Ships
 
     if table_body:
         table_rows = table_body.find_all('tr')  # find all rows <tr> inside a table body
-        log.debug("Found row(s): {}".format(len(table_rows)))
+        # log.debug("Found row(s): {}".format(len(table_rows)))
 
         for row in table_rows:  # iterate over all found rows
             # log.debug("Processing row: [{}]".format(row))  # <- too much output
 
             if row:  # if row is not empty - process it
-                ship_dict = {}
                 cells = row.find_all('td')  # find all cells in the table row <tr>
 
-                # get ship parameters
+                # get base ship parameters
+                ship_dict = {}
+                ship = Ship(123)
+                # print(f"===> Ship: {ship}")
+                # log.debug(f"---> Ship: {ship}")
+
                 ship_dict['flag'] = cells[0].img['title']        # get attribute 'title' of tag <img>
                 ship_dict['main_name'] = cells[1].contents[0]    # get 0 element fro the cell content
                 ship_dict['secondary_name'] = cells[1].div.text  # get value of the tag <div> inside the cell
@@ -211,7 +138,6 @@ def perform_ships_search_single_thread(symbols_variations):
 
     for search_string in symbols_variations[0]:
         log.debug("Currently processing: {} ({} out of {})".format(search_string, counter, variations_length))
-        # html = perform_request(search_string)  # request site and get HTML
         ships = perform_one_request(search_string)  # request and get HTML + parse received data + get ships dict
         local_ships.update(ships)                   # update main dictionary with found data
 
@@ -228,14 +154,14 @@ def perform_ships_search_multiple_threads(symbols_variations):
     """
     log.debug("perform_ships_search_multiple_threads(): perform multi-threaded search.")
 
-    if symbols_variations is None or not isinstance(symbols_variations, dict):
-        raise ValueError('Provided empty dictionary [{}] or it isn\'t dictionary!'.format(symbols_variations))
+    if symbols_variations is None or not isinstance(symbols_variations, list):
+        raise ValueError('Provided empty list [{}] or it isn\'t a list!'.format(symbols_variations))
 
     local_ships = {}
 
     # run processing in multiple threads
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS_COUNT) as executor:
-        for symbol in symbols_variations[0]:
+        for symbol in symbols_variations:
             future = executor.submit(perform_one_request, symbol)
             futures.append(future)
 
@@ -299,14 +225,18 @@ main_ships = {}
 log.info('Starting [scrap_book] module...')
 
 # build list of variations for search strings
-variations = build_variations()
-log.debug("Built list of variations: {}".format(variations))
+start_time = time.time()
+variations = build_variations_list()
 log.debug("# of built variations: {}".format(len(variations)))
+build_variations_duration = time.time() - start_time
+log.info(f"Built variations in {build_variations_duration} seconds.")
 
 # process search variations strings
 # main_ships.update(perform_ships_search_single_thread(variations))
+start_time = time.time()
 main_ships.update(perform_ships_search_multiple_threads(variations))
-log.info("Found total ship(s): {}".format(len(main_ships)))
+search_duration = time.time() - start_time
+log.info(f"Found total ship(s): {len(main_ships)} in {search_duration} seconds.")
 
 # save to excel file
 save_ships(OUTPUT_FILE, main_ships)
