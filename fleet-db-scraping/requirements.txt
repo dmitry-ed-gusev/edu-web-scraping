@@ -17,7 +17,7 @@ prettytable==2.1.0
 # -- test dependencies / virtual environment
 mock==4.0.3
 nose2==0.10.0
-virtualenv>=20.4.3
+virtualenv>=20.4.4
 
 # -- work with word/excel files (old + new formats)
 xlrd==2.0.1

@@ -1,0 +1,20 @@
+# .coveragerc config file to control coverage.py
+# See full doc here: https://coverage.readthedocs.io/en/latest/config.html
+
+[run]
+branch = True
+data_file = .coverage/.coverage
+
+[report]
+show_missing = True
+
+[html]
+directory = .coverage/htmlcoverage
+title = "Fleet DB Scraper Coverage Report"
+
+[xml]
+output = .coverage/coverage.xml
+
+[json]
+output = .coverage/coverage.json
+pretty_print = True

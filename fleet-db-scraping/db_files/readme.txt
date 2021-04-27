@@ -1,1 +1,0 @@
-Folder for DBMS files: SQLite DB / MySql.

@@ -18,10 +18,10 @@ import time
 from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
-from scraper.utils.utilities import build_variations_list
-from scraper.entities.Ship import Ship
+from fleet_scraper.utils.utilities import build_variations_list
+from fleet_scraper.entities.Ship import Ship
 
-# scraper configuration - useful constants
+# fleet_scraper configuration - useful constants
 MAIN_URL = "https://lk.rs-class.org/regbook/regbookVessel?ln=ru"
 FORM_PARAM = "namer"
 ENCODING = "utf-8"

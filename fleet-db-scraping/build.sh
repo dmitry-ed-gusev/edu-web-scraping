@@ -2,10 +2,10 @@
 
 ###############################################################################
 #
-#   Build script for [fleet-db-scraping] utility.
+#   Build and test script for [fleet-db-scraping] utility.
 #
 #   Created:  Dmitrii Gusev, 23.03.2021
-#   Modified:
+#   Modified: Dmitrii Gusev, 27.04.2021
 #
 ###############################################################################
 
@@ -13,17 +13,21 @@
 pip3 install virtualenv
 
 # - create virtual environment
-virtualenv .venv
+virtualenv --verbose .venv
 
 # - activate virtual environment
 source .venv/bin/activate
 
-# - install necessary dependencies in virtual environment
-pip install -r requirements.txt
+# - upgrade pip3 in virtual environment
+#python3 -m pip3 install --upgrade pip
 
-# - run unit tests with coverage
-python3 -m nose2 -v -s scraper_tests --plugin nose2.plugins.junitxml -X --with-coverage --coverage scraper \
-    --coverage-report xml --coverage-report html
+# - install necessary dependencies in virtual environment (according to requirements)
+pip3 install -r requirements.txt
+
+# - run unit tests with coverage and XML/HTML reports
+python3 -m nose2 --verbose --start-dir fleet_scraper_tests --plugin nose2.plugins.junitxml \
+    -X --with-coverage --coverage fleet_scraper \
+    --coverage-report xml --junit-xml-path .coverage/nose2-junit.xml --coverage-report html
 
 # - deactivate virtual environment (exit)
 deactivate
