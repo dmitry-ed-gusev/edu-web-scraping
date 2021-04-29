@@ -1,3 +1,12 @@
+###############################################################################
+#
+#   Logging configuration file for Fleet Scraper Component.
+#
+#   Created:  Dmitrii Gusev, 2020
+#   Modified: Dmitrii Gusev, 29.04.2021
+#
+###############################################################################
+
 version: 1
 # allows to get logger on modules level
 disable_existing_loggers: False
@@ -37,9 +46,17 @@ loggers:
         level:  DEBUG
         #handlers: [console]
         #propagate: yes
-    scraper_utilities:
+    scraper_utilities:         # scraper utilities module
         level: DEBUG
-    scraper_rsclassorg:
+    scraper_clarksonsnet:      # clarksons scraper module
+        level: DEBUG
+    scraper_marinetrafficcom:  # marinetraffic scraper module
+        level: DEBUG
+    scraper_rsclassorg:        # rs-class scraper module
+        level: DEBUG
+    scraper_vesselfinder:      # vessel-finder scraper module
+        level: DEBUG
+    fleet_scraper:             # main Fleet Scraper module
         level: DEBUG
     sqlitedb:
         level: DEBUG

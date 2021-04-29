@@ -18,6 +18,7 @@ import time
 from urllib import request, parse
 from bs4 import BeautifulSoup
 from pyutilities.pylog import setup_logging
+
 from fleet_scraper.utils.utilities import build_variations_list
 from fleet_scraper.entities.Ship import Ship
 
@@ -30,7 +31,7 @@ OUTPUT_FILE = "regbook.xls"
 WORKERS_COUNT = 20
 
 # setup logging for the whole script
-setup_logging(default_path='logging.yml')
+# setup_logging(default_path='logging.yml')
 log = logging.getLogger('scraper_rsclassorg')
 
 # setup for multithreading processing
@@ -214,6 +215,11 @@ def save_ships(xls_file, ships_map):
         row_counter += 1
 
     book.save(xls_file)  # save created workbook
+
+
+def scrap():
+    """"""
+    log.info("scrap(): processing rs-class.org")
 
 
 # main part of the script

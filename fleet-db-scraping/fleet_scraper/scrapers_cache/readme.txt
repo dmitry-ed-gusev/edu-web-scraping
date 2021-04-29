@@ -1,0 +1,1 @@
+Scrapers modules cache for store of raw scrap data.
