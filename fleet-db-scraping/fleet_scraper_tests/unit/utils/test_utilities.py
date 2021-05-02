@@ -10,7 +10,7 @@
 
 import unittest
 import logging
-from fleet_scraper.utils.utilities import build_variations_hashmap, build_variations_list, \
+from fleet_scraper.engine.utils.utilities import build_variations_hashmap, build_variations_list, \
     get_hash_bucket_number, add_value_to_hashmap
 from pyutilities.pylog import setup_logging
 

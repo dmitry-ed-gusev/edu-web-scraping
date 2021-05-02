@@ -1,12 +1,15 @@
+# coding=utf-8
+
 """
-    Ship entity with base properties.
+    Ships related entities for scraping.
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified: Dmitrii Gusev, 26.04.2021
+    Modified: Dmitrii Gusev, 02.05.2021
 """
 
 
-class Ship(object):
+# todo: implement unit tests for this module / script
+class BaseShip(object):
 
     def __init__(self, imo_number):
         self.imo_number = imo_number
@@ -21,3 +24,7 @@ class Ship(object):
         return f"IMO #: {self.imo_number}, REG #: {self.reg_number}, flag: {self.flag}, " \
                f"name: {self.main_name}, secondary name: {self.secondary_name}, " \
                f"port: {self.home_port}, call: {self.call_sign}"
+
+    def __hash__(self) -> int:
+        # todo: implement function!
+        raise Exception("Not implemented yet!")
