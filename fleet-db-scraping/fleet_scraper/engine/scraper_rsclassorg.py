@@ -2,10 +2,13 @@
 # coding=utf-8
 
 """
-    Scraper for RMRS (RS-CLASS.ORG) Register Book.
+    Scraper for Russian Maritime Register of Shipping Register Book.
+
+    Site(s):
+        * https://rs-class.org/ - main url of RMRS
 
     Created:  Gusev Dmitrii, 10.01.2021
-    Modified: Gusev Dmitrii, 02.05.2021
+    Modified: Gusev Dmitrii, 04.05.2021
 """
 
 import logging

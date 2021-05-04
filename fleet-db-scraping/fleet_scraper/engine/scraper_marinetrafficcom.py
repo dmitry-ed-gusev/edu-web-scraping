@@ -2,10 +2,13 @@
 # coding=utf-8
 
 """
-    Scraper for marinetraffic.com site.
+    Scraper for Marine Traffic site.
+
+    Site(s):
+        * https://www.marinetraffic.com/ - main url
 
     Created:  Gusev Dmitrii, 2020
-    Modified: Dmitrii Gusev, 29.04.2021
+    Modified: Dmitrii Gusev, 04.05.2021
 """
 
 import logging

@@ -4,8 +4,11 @@
 """
     Scraper for Clarksons.net site.
 
+    Site(s):
+        * https://www.clarksons.net - main url
+
     Created:  Gusev Dmitrii, 2020
-    Modified: Dmitrii Gusev, 29.04.2021
+    Modified: Dmitrii Gusev, 04.05.2021
 """
 
 import logging

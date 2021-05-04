@@ -2,10 +2,13 @@
 # coding=utf-8
 
 """
-    Scraper for VESSEL FINDER Ship Book.
+    Scraper for Vessel Finder ships storage / site.
+
+    Site(s):
+        * https://www.vesselfinder.com/ - main url
 
     Created:  Gusev Dmitrii, 29.04.2021
-    Modified:
+    Modified: Dmitrii Gusev, 04.05.2021
 """
 
 import logging
