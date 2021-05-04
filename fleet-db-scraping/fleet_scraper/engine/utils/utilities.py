@@ -10,6 +10,7 @@
 import xlwt
 import logging
 import hashlib
+from datetime import datetime
 
 RUS_CHARS = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"
 ENG_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -106,6 +107,13 @@ def build_variations_list() -> list:
 # todo: implement unit tests!
 def generate_timed_filename():
     """"""
+
+    # get current datetime
+    current_datetime = datetime.now()
+
+    print(current_datetime.strftime('%d'))
+
+    # todo: https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
     # todo: implementation! should be smthg like: dd-MM-yyyy-hh_mm_ss-rsclassorg
     # todo: check - is generated name unique for the givel catalog? - extract to different method?
     pass
@@ -166,4 +174,5 @@ def save_ships_to_excel(ships: dict, xls_file: str, xls_sheet_name: str = "ships
 
 # todo: implement unit tests that module isn't runnable directly!
 if __name__ == '__main__':
-    print('Don\'t run this utility script directly!')
+    # print('Don\'t run this utility script directly!')
+    generate_timed_filename()
