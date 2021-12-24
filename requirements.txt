@@ -1,5 +1,5 @@
 pyutilities>=0.13.1
-urllib3==1.26.2
+urllib3==1.26.5
 beautifulsoup4==4.9.3
 
 # -- all installed dependencies - to be reviewed and reduced
