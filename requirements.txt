@@ -39,7 +39,7 @@ pysqlite3==0.4.4
 python-dotenv==0.15.0
 pytz==2020.5
 pyutilities==0.12.0
-PyYAML==5.3.1
+PyYAML==5.4
 readme-renderer==24.0
 requests==2.25.1
 requests-oauthlib==1.2.0
