@@ -48,7 +48,7 @@ rfc3986==1.4.0
 scp==0.13.3
 six==1.13.0
 soupsieve==1.9.5
-sqlparse==0.4.1
+sqlparse==0.4.2
 tqdm==4.37.0
 twine==3.3.0
 
